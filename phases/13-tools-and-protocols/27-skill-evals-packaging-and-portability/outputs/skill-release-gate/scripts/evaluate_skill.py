@@ -493,9 +493,12 @@ def verify_manifest(bundle: Path, config: dict[str, object]) -> dict[str, object
         elif relative == RESERVED_MANIFEST_PATH:
             if not path.is_file():
                 issues.append("reserved manifest path must be a regular file")
-        elif path.is_file():
-            actual[relative] = f"sha256:{hashlib.sha256(path.read_bytes()).hexdigest()}"
-        elif not path.is_dir():
+        
+        elif not path.is_dir():elif path.is_file():
+            data = path.read_bytes()
+            if path.suffix.lower() in {".py", ".json", ".md", ".txt", ".yaml", ".yml", ".toml", ".sh"}:
+                data = data.replace(b"\r\n", b"\n")
+            actual[relative] = f"sha256:{hashlib.sha256(data).hexdigest()}"
             issues.append(f"manifest tree contains a special file: {relative}")
     missing = sorted(set(expected) - set(actual))
     unexpected = sorted(set(actual) - set(expected))
